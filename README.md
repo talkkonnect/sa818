@@ -3,7 +3,7 @@ SA818 golang library for serial control
 
 This library written in [Go programming language](https://golang.org/) to control a rf sa818 walkie talkie module
 
-![image](https://raw.github.com/talkkonnect/max7219/master/images/max7219.jpg)
+![image](https://raw.github.com/talkkonnect/sa818/master/images/sa818.jpg)
 
 Compatibility
 -------------
