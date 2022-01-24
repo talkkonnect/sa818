@@ -31,7 +31,6 @@ package main
 
 import (
 	"log"
-
 	"github.com/talkkonnect/sa818"
 )
 
@@ -55,40 +54,48 @@ func main() {
 	DMOSetup.StopBits = 1
 
 	var err error
-	// Printing Variables to Screen
+	var message string
 
-	log.Println("info: DMOSetup Values ", DMOSetup)
-
-	//Sample Commands and Expected Results for Calling sa818
-
-	err = sa818.Callsa818("InitComm", "(DMOCONNECT:0)", DMOSetup)
+	message, err = sa818.Callsa818("InitComm", "(DMOCONNECT:0)", DMOSetup)
 	if err != nil {
 		log.Println("error: From Module ", err)
+	} else {
+		log.Println("info: sa818 says ", message)
 	}
 
-	err = sa818.Callsa818("CheckVersion", "(VERSION:)", DMOSetup)
+	message, err = sa818.Callsa818("CheckVersion", "(VERSION:)", DMOSetup)
 	if err != nil {
 		log.Println("error: From Module ", err)
+	} else {
+		log.Println("info: sa818 says ", message)
 	}
 
-	err = sa818.Callsa818("CheckRSSI", "(RSSI)", DMOSetup)
+	message, err = sa818.Callsa818("CheckRSSI", "(RSSI)", DMOSetup)
 	if err != nil {
 		log.Println("error: From Module ", err)
+	} else {
+		log.Println("info: sa818 says ", message)
 	}
 
-	err = sa818.Callsa818("SetVolume", "(DMOSETVOLUME:0)", DMOSetup)
+	message, err = sa818.Callsa818("SetVolume", "(DMOSETVOLUME:0)", DMOSetup)
 	if err != nil {
 		log.Println("error: From Module ", err)
+	} else {
+		log.Println("info: sa818 says ", message)
 	}
 
-	err = sa818.Callsa818("DMOSetupFilter", "(DMOSETFILTER:0)", DMOSetup)
+	message, err = sa818.Callsa818("DMOSetupFilter", "(DMOSETFILTER:0)", DMOSetup)
 	if err != nil {
 		log.Println("error: From Module ", err)
+	} else {
+		log.Println("info: sa818 says ", message)
 	}
 
-	err = sa818.Callsa818("DMOSetupGroup", "(DMOSETGROUP:0)", DMOSetup)
+	message, err = sa818.Callsa818("DMOSetupGroup", "(DMOSETGROUP:0)", DMOSetup)
 	if err != nil {
 		log.Println("error: From Module ", err)
+	} else {
+		log.Println("info: sa818 says ", message)
 	}
 
 }

@@ -186,7 +186,7 @@ func serialWrite(message string, port io.WriteCloser) {
 		return
 	}
 	stripMessage := strings.TrimRight(message, "\r\n")
-	log.Printf("info: Wrote %v total of %v bytes.\n", stripMessage, n)
+	log.Printf("debug: Wrote %v total of %v bytes.\n", stripMessage, n)
 }
 
 func serialRead(port io.ReadCloser) string {
@@ -202,7 +202,7 @@ func serialRead(port io.ReadCloser) string {
 	}
 }
 
-func Callsa818(sendCommand string, expectedAnswer string, DMOSetup DMOSetupStruct) error {
+func Callsa818(sendCommand string, expectedAnswer string, DMOSetup DMOSetupStruct) (string, error) {
 
 	SerialOptions.PortName = DMOSetup.PortName
 	SerialOptions.BaudRate = DMOSetup.BaudRate
@@ -212,43 +212,53 @@ func Callsa818(sendCommand string, expectedAnswer string, DMOSetup DMOSetupStruc
 	SerialOptions.MinimumReadSize = 4
 
 	var ErrorMessage error
+	var Message string
+
 	switch sendCommand {
 	case "InitComm":
 		SA818Answer = InitComm()
+		Message = "Successfully Initalized Module"
 		ErrorMessage = errors.New("Cannot Initalize Module")
 	case "CheckVersion":
 		SA818Answer = CheckVersion()
+		Message = "Successfully Checked Version"
 		ErrorMessage = errors.New("Cannot Check Version")
 	case "DMOSetupGroup":
 		SA818Answer = SetFrequency(DMOSetup)
+		Message = "DMOSetupGroup OK"
 		ErrorMessage = errors.New("Cannot Setup Frequency")
 	case "DMOSetupFilter":
 		SA818Answer = SetFilter(DMOSetup)
+		Message = "DMOSetupFilter OK"
 		ErrorMessage = errors.New("Cannot Setup Filter")
 	case "SetVolume":
 		SA818Answer = SetVolume(DMOSetup.Volume)
+		Message = "Set Volume OK"
 		ErrorMessage = errors.New("Cannot Set Volume")
 	case "SetCloseTailTone":
 		SA818Answer = SetCloseTailTone(1)
+		Message = "Set CloseTailTone OK"
 		ErrorMessage = errors.New("Cannot Close Tail Tone")
 	case "SetOpenTailTone":
 		SA818Answer = SetCloseTailTone(0)
+		Message = "Set OpenTailTone OK"
 		ErrorMessage = errors.New("Cannot Open Tail Tone")
 	case "CheckRSSI":
 		SA818Answer = CheckRSSI()
+		Message = "Check RSSI OK"
 		ErrorMessage = errors.New("Cannot Check RSI")
 	default:
-		return errors.New("Command is not defined")
+		return "Command Not OK",errors.New("Command not defined")
 	}
 
 	re := regexp.MustCompile(expectedAnswer)
 	matched := re.MatchString(SA818Answer)
 	if matched {
-		log.Println("info: OK Response From sa818 ", SA818Answer)
+		log.Printf("debug: OK Response From sa818 %v", SA818Answer)
 		time.Sleep(800 * time.Millisecond)
-		return nil
+		return Message,nil
 	} else {
-		log.Println("info: Fail Response From sa818 ", SA818Answer)
-		return ErrorMessage
+		log.Println("error: Fail Response From sa818 ", SA818Answer)
+		return "Error", ErrorMessage
 	}
 }
