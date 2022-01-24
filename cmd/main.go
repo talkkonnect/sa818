@@ -35,33 +35,60 @@ import (
 	"github.com/talkkonnect/sa818"
 )
 
-var DMOSetupGroup sa818.DMOSetupGroupStruct
-var DMOSetupFilter sa818.DMOSetupFilterStruct
-var volume int = 5
+var DMOSetup sa818.DMOSetupStruct
 
 func main() {
 
-	DMOSetupGroup.Band = 0
-	DMOSetupGroup.Rxfreq = 168.7750
-	DMOSetupGroup.Txfreq = 168.7750
-	DMOSetupGroup.Ctsstone = 0
-	DMOSetupGroup.Squelch = 0
-	DMOSetupGroup.Dcstone = 0
+	DMOSetup.Band = 0
+	DMOSetup.Rxfreq = 168.7750
+	DMOSetup.Txfreq = 168.7750
+	DMOSetup.Ctsstone = 0
+	DMOSetup.Squelch = 0
+	DMOSetup.Dcstone = 0
+	DMOSetup.Predeemph = 0
+	DMOSetup.Highpass = 0
+	DMOSetup.Lowpass = 0
+	DMOSetup.Volume = 4
+	DMOSetup.PortName = "/dev/ttyAMA0"
+	DMOSetup.BaudRate = 9600
+	DMOSetup.DataBits = 8
+	DMOSetup.StopBits = 1
 
-	DMOSetupFilter.Predeemph = 0
-	DMOSetupFilter.Highpass = 0
-	DMOSetupFilter.Lowpass = 0
+	var err error
+	// Printing Variables to Screen
 
-	log.Println(DMOSetupGroup)
-	log.Println(DMOSetupFilter)
-	log.Println(volume)
+	log.Println("info: DMOSetup Values ", DMOSetup)
 
-	//log.Println(sa818.InitComm())
-	//log.Println(sa818.CheckVersion())
-	log.Println(sa818.SetFrequency(DMOSetupGroup))
-	//log.Println(sa818.SetFilter(DMOSetupFilter))
-	log.Println(sa818.SetVolume(volume))
-	//log.Println(sa818.SetCloseTailTone(1))
-	//log.Println(sa818.CheckRSSI())
+	//Sample Commands and Expected Results for Calling sa818
+
+	err = sa818.Callsa818("InitComm", "(DMOCONNECT:0)", DMOSetup)
+	if err != nil {
+		log.Println("error: From Module ", err)
+	}
+
+	err = sa818.Callsa818("CheckVersion", "(VERSION:)", DMOSetup)
+	if err != nil {
+		log.Println("error: From Module ", err)
+	}
+
+	err = sa818.Callsa818("CheckRSSI", "(RSSI)", DMOSetup)
+	if err != nil {
+		log.Println("error: From Module ", err)
+	}
+
+	err = sa818.Callsa818("SetVolume", "(DMOSETVOLUME:0)", DMOSetup)
+	if err != nil {
+		log.Println("error: From Module ", err)
+	}
+
+	err = sa818.Callsa818("DMOSetupFilter", "(DMOSETFILTER:0)", DMOSetup)
+	if err != nil {
+		log.Println("error: From Module ", err)
+	}
+
+	err = sa818.Callsa818("DMOSetupGroup", "(DMOSETGROUP:0)", DMOSetup)
+	if err != nil {
+		log.Println("error: From Module ", err)
+	}
 
 }

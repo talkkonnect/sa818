@@ -30,42 +30,41 @@
 package sa818
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/jacobsa/go-serial/serial"
 )
 
-type DMOSetupGroupStruct struct {
-	Band     int
-	Rxfreq   float32
-	Txfreq   float32
-	Ctsstone int
-	Squelch  int
-	Dcstone  int
-}
-
-type DMOSetupFilterStruct struct {
+type DMOSetupStruct struct {
+	Band      int
+	Rxfreq    float32
+	Txfreq    float32
+	Ctsstone  int
+	Squelch   int
+	Dcstone   int
 	Predeemph int
 	Highpass  int
 	Lowpass   int
+	Volume    int
+	PortName  string
+	BaudRate  uint
+	DataBits  uint
+	StopBits  uint
 }
 
-var SerialOptions = serial.OpenOptions{
-	PortName:        "/dev/ttyAMA0",
-	BaudRate:        9600,
-	DataBits:        8,
-	StopBits:        1,
-	MinimumReadSize: 4,
-}
+var DMOSetup DMOSetupStruct
+var SA818Answer string
 
-var DMOSetupGroup DMOSetupGroupStruct
-var DMOSetupFilter DMOSetupFilterStruct
+var SerialOptions serial.OpenOptions
 
 func CheckRSSI() string {
+
 	port, err := serial.Open(SerialOptions)
 	if err != nil {
 		log.Printf("error: Serial Open Failed with error %v", err)
@@ -118,7 +117,7 @@ func SetVolume(volume int) string {
 	return serialRead(port)
 }
 
-func SetFilter(DMOSetupFilterCommand DMOSetupFilterStruct) string {
+func SetFilter(DMOSetupCommand DMOSetupStruct) string {
 	port, err := serial.Open(SerialOptions)
 	if err != nil {
 		log.Printf("error: Serial Open Failed with error %v", err)
@@ -126,13 +125,13 @@ func SetFilter(DMOSetupFilterCommand DMOSetupFilterStruct) string {
 	}
 
 	defer port.Close()
-	serialWrite(fmt.Sprintf("AT+SETFILTER=%d,%d,%d", DMOSetupFilterCommand.Predeemph, DMOSetupFilterCommand.Highpass, DMOSetupFilterCommand.Lowpass)+"\r\n", port)
+	serialWrite(fmt.Sprintf("AT+SETFILTER=%d,%d,%d", DMOSetupCommand.Predeemph, DMOSetupCommand.Highpass, DMOSetupCommand.Lowpass)+"\r\n", port)
 	time.Sleep(1 * time.Second)
 
 	return serialRead(port)
 }
 
-func SetFrequency(DMOSetupGroupCommand DMOSetupGroupStruct) string {
+func SetFrequency(DMOSetupCommand DMOSetupStruct) string {
 	port, err := serial.Open(SerialOptions)
 	if err != nil {
 		log.Printf("error: Serial Open Failed with error %v", err)
@@ -141,7 +140,7 @@ func SetFrequency(DMOSetupGroupCommand DMOSetupGroupStruct) string {
 
 	defer port.Close()
 
-	serialWrite(fmt.Sprintf("AT+DMOSETGROUP=%d,%.4f,%.4f,%04d,%d,%04d", DMOSetupGroupCommand.Band, DMOSetupGroupCommand.Rxfreq, DMOSetupGroupCommand.Txfreq, DMOSetupGroupCommand.Ctsstone, DMOSetupGroupCommand.Squelch, DMOSetupGroupCommand.Dcstone)+"\r\n", port)
+	serialWrite(fmt.Sprintf("AT+DMOSETGROUP=%d,%.4f,%.4f,%04d,%d,%04d", DMOSetupCommand.Band, DMOSetupCommand.Rxfreq, DMOSetupCommand.Txfreq, DMOSetupCommand.Ctsstone, DMOSetupCommand.Squelch, DMOSetupCommand.Dcstone)+"\r\n", port)
 	time.Sleep(1 * time.Second)
 
 	return serialRead(port)
@@ -200,5 +199,56 @@ func serialRead(port io.ReadCloser) string {
 			defer port.Close()
 		}
 		return string(buf[:n])
+	}
+}
+
+func Callsa818(sendCommand string, expectedAnswer string, DMOSetup DMOSetupStruct) error {
+
+	SerialOptions.PortName = DMOSetup.PortName
+	SerialOptions.BaudRate = DMOSetup.BaudRate
+	SerialOptions.DataBits = DMOSetup.DataBits
+	SerialOptions.DataBits = DMOSetup.DataBits
+	SerialOptions.StopBits = DMOSetup.StopBits
+	SerialOptions.MinimumReadSize = 4
+
+	var ErrorMessage error
+	switch sendCommand {
+	case "InitComm":
+		SA818Answer = InitComm()
+		ErrorMessage = errors.New("Cannot Initalize Module")
+	case "CheckVersion":
+		SA818Answer = CheckVersion()
+		ErrorMessage = errors.New("Cannot Check Version")
+	case "DMOSetupGroup":
+		SA818Answer = SetFrequency(DMOSetup)
+		ErrorMessage = errors.New("Cannot Setup Frequency")
+	case "DMOSetupFilter":
+		SA818Answer = SetFilter(DMOSetup)
+		ErrorMessage = errors.New("Cannot Setup Filter")
+	case "SetVolume":
+		SA818Answer = SetVolume(DMOSetup.Volume)
+		ErrorMessage = errors.New("Cannot Set Volume")
+	case "SetCloseTailTone":
+		SA818Answer = SetCloseTailTone(1)
+		ErrorMessage = errors.New("Cannot Close Tail Tone")
+	case "SetOpenTailTone":
+		SA818Answer = SetCloseTailTone(0)
+		ErrorMessage = errors.New("Cannot Open Tail Tone")
+	case "CheckRSSI":
+		SA818Answer = CheckRSSI()
+		ErrorMessage = errors.New("Cannot Check RSI")
+	default:
+		return errors.New("Command is not defined")
+	}
+
+	re := regexp.MustCompile(expectedAnswer)
+	matched := re.MatchString(SA818Answer)
+	if matched {
+		log.Println("info: OK Response From sa818 ", SA818Answer)
+		time.Sleep(800 * time.Millisecond)
+		return nil
+	} else {
+		log.Println("info: Fail Response From sa818 ", SA818Answer)
+		return ErrorMessage
 	}
 }
