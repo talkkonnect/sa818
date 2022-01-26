@@ -212,6 +212,7 @@ func Callsa818(sendCommand string, expectedAnswer string, DMOSetup DMOSetupStruc
 	SerialOptions.DataBits = DMOSetup.DataBits
 	SerialOptions.StopBits = DMOSetup.StopBits
 	SerialOptions.MinimumReadSize = 4
+	SerialOptions.InterCharacterTimeout = 100
 
 	var ErrorMessage error
 	var Message string
