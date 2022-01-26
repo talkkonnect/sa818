@@ -256,11 +256,11 @@ func Callsa818(sendCommand string, expectedAnswer string, DMOSetup DMOSetupStruc
 	re := regexp.MustCompile(expectedAnswer)
 	matched := re.MatchString(SA818Answer)
 	if matched {
-		log.Printf("debug: OK Response From sa818 %v\n", SA818Answer)
+//		log.Printf("debug: OK Response From sa818 %v\n", SA818Answer)
 		time.Sleep(800 * time.Millisecond)
 		return Message, nil
 	} else {
-		log.Println("error: Fail Response From sa818 ", SA818Answer)
+//		log.Println("error: Fail Response From sa818 ", SA818Answer)
 		return "Error", ErrorMessage
 	}
 }
