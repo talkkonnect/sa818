@@ -39,8 +39,10 @@ var DMOSetup sa818.DMOSetupStruct
 func main() {
 
 	DMOSetup.Band = 0
-	DMOSetup.Rxfreq = 168.7750
-	DMOSetup.Txfreq = 168.7750
+	DMOSetup.Rxfreq = 168.4450
+	DMOSetup.Txfreq = 168.4450
+//	DMOSetup.Rxfreq = 168.7750
+//	DMOSetup.Txfreq = 168.7750
 	DMOSetup.Ctsstone = 0
 	DMOSetup.Squelch = 0
 	DMOSetup.Dcstone = 0
@@ -97,5 +99,4 @@ func main() {
 	} else {
 		log.Println("info: sa818 says ", message)
 	}
-
 }
