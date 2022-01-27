@@ -31,72 +31,84 @@ package main
 
 import (
 	"log"
+
 	"github.com/talkkonnect/sa818"
 )
 
-var DMOSetup sa818.DMOSetupStruct
-
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	var DMOSetup sa818.DMOSetupStruct
+	var initComm, checkVersion, checkRSSI, setFrequency, setFilter, setVolume bool
 
 	DMOSetup.Band = 0
-	DMOSetup.Rxfreq = 168.4450
-	DMOSetup.Txfreq = 168.4450
-//	DMOSetup.Rxfreq = 168.7750
-//	DMOSetup.Txfreq = 168.7750
+	DMOSetup.Rxfreq = 168.7750
+	DMOSetup.Txfreq = 168.7750
 	DMOSetup.Ctsstone = 0
-	DMOSetup.Squelch = 0
+	DMOSetup.Squelch = 1
 	DMOSetup.Dcstone = 0
 	DMOSetup.Predeemph = 0
 	DMOSetup.Highpass = 0
 	DMOSetup.Lowpass = 0
-	DMOSetup.Volume = 4
-	DMOSetup.PortName = "/dev/ttyAMA0"
-	DMOSetup.BaudRate = 9600
-	DMOSetup.DataBits = 8
-	DMOSetup.StopBits = 1
+	DMOSetup.Volume = 8
+	DMOSetup.SerialOptions.PortName = "/dev/ttyAMA0"
+	DMOSetup.SerialOptions.BaudRate = 9600
+	DMOSetup.SerialOptions.DataBits = 8
+	DMOSetup.SerialOptions.StopBits = 1
+	DMOSetup.SerialOptions.MinimumReadSize = 2
+	DMOSetup.SerialOptions.InterCharacterTimeout = 200
 
-	var err error
-	var message string
+	//enable the function you want to call to the module
+	initComm = true
+	checkVersion = true
+	checkRSSI = true
+	setFrequency = true
+	setFilter = true
+	setVolume = true
 
-	message, err = sa818.Callsa818("InitComm", "(DMOCONNECT:0)", DMOSetup)
-	if err != nil {
-		log.Println("error: From Module ", err)
-	} else {
-		log.Println("info: sa818 says ", message)
+	if initComm {
+		err := sa818.Callsa818("InitComm", DMOSetup)
+		if err != nil {
+			log.Println("info: SAModule Init Comm Error ", err)
+		} else {
+			log.Println("info: SAModule Init Comm OK ")
+		}
 	}
 
-	message, err = sa818.Callsa818("CheckVersion", "(VERSION:)", DMOSetup)
-	if err != nil {
-		log.Println("error: From Module ", err)
-	} else {
-		log.Println("info: sa818 says ", message)
+	if checkVersion {
+		err := sa818.Callsa818("CheckVersion", DMOSetup)
+		log.Println("info: CheckVersion ", err)
 	}
 
-	message, err = sa818.Callsa818("CheckRSSI", "(RSSI)", DMOSetup)
-	if err != nil {
-		log.Println("error: From Module ", err)
-	} else {
-		log.Println("info: sa818 says ", message)
+	if checkRSSI {
+		err := sa818.Callsa818("CheckRSSI", DMOSetup)
+		log.Println("info: Check RSSI ", err)
 	}
 
-	message, err = sa818.Callsa818("SetVolume", "(DMOSETVOLUME:0)", DMOSetup)
-	if err != nil {
-		log.Println("error: From Module ", err)
-	} else {
-		log.Println("info: sa818 says ", message)
+	if setFrequency {
+		err := sa818.Callsa818("DMOSetupGroup", DMOSetup)
+		if err != nil {
+			log.Println("info: SAModule Set Frequecy Error ", err)
+		} else {
+			log.Println("info: SAModule Set Frequecy OK ")
+		}
 	}
 
-	message, err = sa818.Callsa818("DMOSetupFilter", "(DMOSETFILTER:0)", DMOSetup)
-	if err != nil {
-		log.Println("error: From Module ", err)
-	} else {
-		log.Println("info: sa818 says ", message)
+	if setFilter {
+		err := sa818.Callsa818("DMOSetupFilter", DMOSetup)
+		if err != nil {
+			log.Println("info: SAModule Setup Filter Error ", err)
+		} else {
+			log.Println("info: SAModule Setup Filter OK ")
+		}
 	}
 
-	message, err = sa818.Callsa818("DMOSetupGroup", "(DMOSETGROUP:0)", DMOSetup)
-	if err != nil {
-		log.Println("error: From Module ", err)
-	} else {
-		log.Println("info: sa818 says ", message)
+	if setVolume {
+		err := sa818.Callsa818("SetVolume", DMOSetup)
+		if err != nil {
+			log.Println("info: SAModule Set Volume Error ", err)
+		} else {
+			log.Println("info: SAModule Set Volume OK ")
+		}
 	}
 }
